@@ -8,6 +8,7 @@ var express = require('express'),
     var moment = require('moment');
     var bcrypt = require('bcryptjs');
     var request = require('request');
+    var config = require('../config');
 
     //Any requests to this controller must pass through this 'use' function
     //Copy and pasted from method-override
@@ -61,13 +62,102 @@ var express = require('express'),
       return jwt.encode(payload, config.TOKEN_SECRET);
     }
 
+    /*
+     |--------------------------------------------------------------------------
+     | Get all users
+     | route : GET /user
+     |--------------------------------------------------------------------------
+     */
     router.route('/')
-
-    /* GET home page. */
-    .get(function(req, res, next) {
-      mongoose.model('User').find({}, function(err, user) {
-        res.send(user);
+      .get(function(req, res, next) {
+        mongoose.model('User').find({}, function(err, user) {
+          res.send(user);
+        });
       });
-    });
+
+    /*
+     |--------------------------------------------------------------------------
+     | Create Email and Password Account
+     | route : POST /user/signup
+     |--------------------------------------------------------------------------
+     */
+     router.route('/signup')
+      .post(function(req, res) {
+        mongoose.model('User').findOne({ email: req.body.email }, function(err, existingUser) {
+          if (existingUser) {
+            return res.status(409).send({ message: 'Email is already taken' });
+          }
+
+          mongoose.model('User').create({
+            username: req.body.username,
+            email: req.body.email,
+            password: req.body.password
+          },function(err,user){
+            if (err) {
+              res.status(500).send({ message: err.message });
+            } else {
+              res.send({ token: createJWT(user) });
+            }
+          });
+        });
+      });
+
+    /*
+     |--------------------------------------------------------------------------
+     | Log in with Email
+     | route : POST /user/login
+     |--------------------------------------------------------------------------
+    */
+     router.route('/login')
+       .post(function(req, res) {
+        mongoose.model('User').findOne({ email: req.body.email }, '+password', function(err, user) {
+          if (!user) {
+            return res.status(401).send({ message: 'Invalid email and/or password' });
+          }
+          user.comparePassword(req.body.password, function(err, isMatch) {
+            if (!isMatch) {
+              return res.status(401).send({ message: 'Invalid email and/or password' });
+            }
+            res.send({ token: createJWT(user) });
+          });
+        });
+      });
+
+    /*
+     |--------------------------------------------------------------------------
+     | Get my profile
+     | route : GET /user/me
+     |--------------------------------------------------------------------------
+     */
+     router.route('/me')
+       .get(ensureAuthenticated, function(req, res) {
+          mongoose.model('User').findById(req.user, function(err, user) {
+            res.send(user);
+          });
+        })
+
+    /*
+     |--------------------------------------------------------------------------
+     | Update my profile
+     | route : PUT /user/me
+     |--------------------------------------------------------------------------
+     */
+        .put(ensureAuthenticated, function(req, res) {
+          mongoose.model('User').findById(req.user, function(err, user) {
+            if (!user) {
+              return res.status(400).send({ message: 'User not found' });
+            }
+            user.username = req.body.username || user.username;
+            user.firstname = req.body.firstname || user.firstname;
+            user.lastname = req.body.lastname || user.lastname;
+            user.email = req.body.email || user.email;
+            user.save(function(err,result) {
+              if (err) {
+                res.status(500).send({ message: err.message });
+              }
+              res.send('You are successfully update your profile');
+            });
+          });
+        });
 
 module.exports = router;
