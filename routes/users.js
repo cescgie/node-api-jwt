@@ -167,20 +167,20 @@ var express = require('express'),
       |--------------------------------------------------------------------------
       */
 
-      router.route('/:username')
+      router.route('/:id')
        .get(function(req, res) {
-         mongoose.model('User').findOne({ username: req.username }, function(err, user) {
+         mongoose.model('User').findById(req.id, function(err, user) {
            res.send(user);
          });
        });
 
      /*
       |--------------------------------------------------------------------------
-      | Middleware to validate :username
+      | Middleware to validate :id
       |--------------------------------------------------------------------------
       */
-      router.param('username', function(req, res, next, username) {
-        mongoose.model('User').findOne({ username: req.params.username }, function (err, user) {
+      router.param('id', function(req, res, next, id) {
+        mongoose.model('User').findById(id, function (err, user) {
           // if it isn't found, we are going to respond with 404
           if (err || user==null) {
             res.status(404)
@@ -190,7 +190,7 @@ var express = require('express'),
             // if it is found we continue on
           } else {
             // once validation is done save the new item in the req
-            req.username = username;
+            req.id = id;
             // go to the next thing
             next();
           }
