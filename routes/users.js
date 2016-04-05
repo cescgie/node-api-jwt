@@ -160,32 +160,41 @@ var express = require('express'),
           });
         });
 
-     router.route('/:username')
-     .get(function(req, res) {
-        mongoose.model('User').findOne({ username: req.params.username }, function(err, user) {
-          res.send(user);
-        });
-      });
+     /*
+      |--------------------------------------------------------------------------
+      | Get info user
+      | route : GET /user/:username
+      |--------------------------------------------------------------------------
+      */
 
-      // route middleware to validate :id
-      router.param('username', function(req, res, next, id) {
-          mongoose.model('User').findOne({ username: req.params.username }, function (err, user) {
-              // if it isn't found, we are going to repond with 404
-              if (err || user==null) {
-                  res.status(404)
-                  var err = new Error('Not Found');
-                  err.status = 404;
-                  res.send(err.status);
-                  // if it is found we continue on
-              } else {
-                  // uncomment this next line if you want to see every JSON document response for every GET/PUT/DELETE call
-                  // console.log(user);
-                  // once validation is done save the new item in the req
-                  req.id = id;
-                  // go to the next thing
-                  next();
-              }
-          });
+      router.route('/:username')
+       .get(function(req, res) {
+         mongoose.model('User').findOne({ username: req.username }, function(err, user) {
+           res.send(user);
+         });
+       });
+
+     /*
+      |--------------------------------------------------------------------------
+      | Middleware to validate :username
+      |--------------------------------------------------------------------------
+      */
+      router.param('username', function(req, res, next, username) {
+        mongoose.model('User').findOne({ username: req.params.username }, function (err, user) {
+          // if it isn't found, we are going to respond with 404
+          if (err || user==null) {
+            res.status(404)
+            var err = new Error('Not Found');
+            err.status = 404;
+            res.sendStatus(err.status);
+            // if it is found we continue on
+          } else {
+            // once validation is done save the new item in the req
+            req.username = username;
+            // go to the next thing
+            next();
+          }
+        });
       });
 
 module.exports = router;
