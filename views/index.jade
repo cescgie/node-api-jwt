@@ -3,3 +3,13 @@ extends layout
 block content
   h1= title
   p Welcome to #{title}
+
+  form(method="post",action='/user/login')
+        div.input
+            span.label Email
+            input(type="text", name="email")
+        div.input
+            span.label Password
+            input(type="password", name="password")
+        div.actions
+            input(type="submit", value="Login")
