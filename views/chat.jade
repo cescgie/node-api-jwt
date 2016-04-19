@@ -1,11 +1,6 @@
 extends layout
 
 block content
-  //- ul(id='messages')
-  //- form(action='',class='chat')
-  //-   input(id='m',class='chat',autocomplete='off')
-  //-   button SEND
-  
   ul(class='pages')
     li(class='chat page')
       div(class='chatArea')
@@ -19,4 +14,4 @@ block content
   script(src='http://code.jquery.com/jquery-1.11.1.js')
   script(src='/socket.io/socket.io.js')
   script
-    include ../routes/chats.js 
+    include ../libs/chats.js 

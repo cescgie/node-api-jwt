@@ -21,7 +21,6 @@ var io = require( "socket.io" )( http );
 // Chatroom
 var numUsers = 0;
 io.on('connection', function(socket){
-  console.log('socket');
   var addedUser = false;
 
   // when the client emits 'new message', this listens and executes
